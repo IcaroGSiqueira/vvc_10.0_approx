@@ -48,6 +48,8 @@
 #include "CommonLib/Rom.h"
 #include "EncoderLib/RateCtrl.h"
 
+#include "CommonLib/LabUCPel.h"
+
 #include "CommonLib/dtrace_next.h"
 #if JVET_S_PROFILES
 #include "CommonLib/ProfileLevelTier.h"
@@ -1167,6 +1169,8 @@ bool EncAppCfg::parseCfg( int argc, char* argv[] )
   ("DeblockingFilterMetric",                          m_DeblockingFilterMetric,                         false)
 #endif
   // Coding tools
+  ("fme_filter_ntaps",                                LabUCPel::ntaps_filter,                              8, "Approximate Filters")
+
   ("ReconBasedCrossCPredictionEstimate",              m_reconBasedCrossCPredictionEstimate,             false, "When determining the alpha value for cross-component prediction, use the decoded residual rather than the pre-transform encoder-side residual")
   ("TransformSkip",                                   m_useTransformSkip,                               false, "Intra transform skipping")
   ("TransformSkipFast",                               m_useTransformSkipFast,                           false, "Fast encoder search for transform skipping, winner takes it all mode.")

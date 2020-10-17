@@ -44,6 +44,7 @@
 #include "InterpolationFilter.h"
 
 #include "ChromaFormat.h"
+#include "LabUCPel.h"
 
 #if JVET_J0090_MEMORY_BANDWITH_MEASURE
 CacheModel* InterpolationFilter::m_cacheModel;
@@ -74,9 +75,9 @@ const TFilterCoeff InterpolationFilter::m_lumaFilter4x4[LUMA_INTERPOLATION_FILTE
   {  0, 1,  -2,  4, 63,  -3,  1,  0 }
 };
 
-const TFilterCoeff InterpolationFilter::m_lumaFilter[LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS][NTAPS_LUMA] =
+const TFilterCoeff InterpolationFilter::m_lumaFilter[N_APPROX_FILTERS][LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS][NTAPS_LUMA] =
 {
-  {  0, 0,   0, 64,  0,   0,  0,  0 },
+  {{  0, 0,   0, 64,  0,   0,  0,  0 },
   {  0, 1,  -3, 63,  4,  -2,  1,  0 },
   { -1, 2,  -5, 62,  8,  -3,  1,  0 },
   { -1, 3,  -8, 60, 13,  -4,  1,  0 },
@@ -92,6 +93,24 @@ const TFilterCoeff InterpolationFilter::m_lumaFilter[LUMA_INTERPOLATION_FILTER_S
   {  0, 1,  -4, 13, 60,  -8,  3, -1 },
   {  0, 1,  -3,  8, 62,  -5,  2, -1 },
   {  0, 1,  -2,  4, 63,  -3,  1,  0 }
+},
+
+{
+  {0,	0,	-2,	  63,	4,	-1,	  0,	0},
+  {0,	1,	-5,	  62,	8,	-2,	  0,	0},
+  {0,	2,	-8,	  60,	13,	-3,	  0,	0},
+  {0,	3,	-10,	58,	17,	-4,	  0,	0},
+  {0,	3,	-11,	52,	26,	-8,	  2,	0},
+  {0,	2,	-9,	  47,	31,	-10,	3,	0},
+  {0,	3,	-11,	45,	34,	-10,	3,	0},
+  {0,	3,	-11,	40,	40,	-11,	3,	0},
+  {0,	3,	-10,	34,	45,	-11,	3,	0},
+  {0,	3,	-10,	31,	47,	-9,	  2,	0},
+  {0,	2,	-8,	  26,	52,	-11,	3,	0},
+  {0,	0,	-4,	  17,	58,	-10,	3,	0},
+  {0,	0,	-3,	  13,	60,	-8,	  2,	0},
+  {0,	0,	-2,	  8,	62,	-5,	  1,	0},
+  {0,	0,	-1,	  4,	63,	-2,	  0,	0}}
 };
 
 // 1.5x
@@ -748,8 +767,10 @@ void InterpolationFilter::filterVer(const ClpRng& clpRng, Pel const *src, int sr
  * \param  fmt        Chroma format
  * \param  bitDepth   Bit depth
  */
-void InterpolationFilter::filterHor(const ComponentID compID, Pel const *src, int srcStride, Pel *dst, int dstStride, int width, int height, int frac, bool isLast, const ChromaFormat fmt, const ClpRng& clpRng, int nFilterIdx, bool biMCForDMVR, bool useAltHpelIf)
+void InterpolationFilter::filterHor(const ComponentID compID, Pel const *src, int srcStride, Pel *dst, int dstStride, int width, int height, int frac, bool isLast, const ChromaFormat fmt, const ClpRng& clpRng, int nFilterIdx, bool biMCForDMVR, bool useAltHpelIf , int n_taps_filter)
 {
+  int n_taps_idx = 4-(n_taps_filter/2);
+
   if( frac == 0 && nFilterIdx < 2 )
   {
     m_filterCopy[true][isLast]( clpRng, src, srcStride, dst, dstStride, width, height, biMCForDMVR );
@@ -791,7 +812,7 @@ void InterpolationFilter::filterHor(const ComponentID compID, Pel const *src, in
     }
     else
     {
-      filterHor<NTAPS_LUMA>( clpRng, src, srcStride, dst, dstStride, width, height, isLast, m_lumaFilter[frac], biMCForDMVR );
+      filterHor<NTAPS_LUMA>( clpRng, src, srcStride, dst, dstStride, width, height, isLast, m_lumaFilter[n_taps_idx][frac], biMCForDMVR );
     }
   }
   else
@@ -830,8 +851,10 @@ void InterpolationFilter::filterHor(const ComponentID compID, Pel const *src, in
  * \param  fmt        Chroma format
  * \param  bitDepth   Bit depth
  */
-void InterpolationFilter::filterVer(const ComponentID compID, Pel const *src, int srcStride, Pel *dst, int dstStride, int width, int height, int frac, bool isFirst, bool isLast, const ChromaFormat fmt, const ClpRng& clpRng, int nFilterIdx, bool biMCForDMVR, bool useAltHpelIf)
+void InterpolationFilter::filterVer(const ComponentID compID, Pel const *src, int srcStride, Pel *dst, int dstStride, int width, int height, int frac, bool isFirst, bool isLast, const ChromaFormat fmt, const ClpRng& clpRng, int nFilterIdx, bool biMCForDMVR, bool useAltHpelIf , int n_taps_filter)
 {
+  int n_taps_idx = 4-(n_taps_filter/2);
+
   if( frac == 0 && nFilterIdx < 2 )
   {
     m_filterCopy[isFirst][isLast]( clpRng, src, srcStride, dst, dstStride, width, height, biMCForDMVR );
@@ -873,7 +896,7 @@ void InterpolationFilter::filterVer(const ComponentID compID, Pel const *src, in
     }
     else
     {
-      filterVer<NTAPS_LUMA>( clpRng, src, srcStride, dst, dstStride, width, height, isFirst, isLast, m_lumaFilter[frac], biMCForDMVR );
+      filterVer<NTAPS_LUMA>( clpRng, src, srcStride, dst, dstStride, width, height, isFirst, isLast, m_lumaFilter[n_taps_idx][frac], biMCForDMVR );
     }
   }
   else

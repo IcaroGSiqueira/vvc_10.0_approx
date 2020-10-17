@@ -667,8 +667,8 @@ void Picture::sampleRateConv( const std::pair<int, int> scalingRatio, const std:
     return;
   }
 
-  const TFilterCoeff* filterHor = useLumaFilter ? &InterpolationFilter::m_lumaFilter[0][0] : &InterpolationFilter::m_chromaFilter[0][0];
-  const TFilterCoeff* filterVer = useLumaFilter ? &InterpolationFilter::m_lumaFilter[0][0] : &InterpolationFilter::m_chromaFilter[0][0];
+  const TFilterCoeff* filterHor = useLumaFilter ? &InterpolationFilter::m_lumaFilter[0][0][0] : &InterpolationFilter::m_chromaFilter[0][0];
+  const TFilterCoeff* filterVer = useLumaFilter ? &InterpolationFilter::m_lumaFilter[0][0][0] : &InterpolationFilter::m_chromaFilter[0][0];
   const int numFracPositions = useLumaFilter ? 15 : 31;
   const int numFracShift = useLumaFilter ? 4 : 5;
   const int posShiftX = SCALE_RATIO_BITS - numFracShift + compScale.first;
