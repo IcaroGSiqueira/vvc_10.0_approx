@@ -95,7 +95,7 @@ const TFilterCoeff InterpolationFilter::m_lumaFilter[N_APPROX_FILTERS][LUMA_INTE
   {  0, 1,  -2,  4, 63,  -3,  1,  0 }
 },
 
-{
+{{  0, 0,   0, 64,  0,   0,  0,  0 },
   {0,	0,	-2,	  63,	4,	-1,	  0,	0},
   {0,	1,	-5,	  62,	8,	-2,	  0,	0},
   {0,	2,	-8,	  60,	13,	-3,	  0,	0},
